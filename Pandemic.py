@@ -6,6 +6,8 @@ role_list = ["contingency planner", "dispatcher", "medic", "operations expert", 
 
 
 class cSession:
+    # A session is an individual play.
+    # The information to be stored should be submitted at game end.
 
     def __init__(self):
         self.players = 0
@@ -71,10 +73,10 @@ class cSession:
             sys.exit()
 
     def set_result(self, result_in):
+        # Result is either a win or loss.
         error = 0
-        if result_in == "":
-            error = 1
-        result_out = result_in[0].lower()
+        if result_in != "":
+            result_out = result_in[0].lower()
         
         if result_out == "w" or result_out == "l":
             self.result = result_out
@@ -89,6 +91,9 @@ class cSession:
         return self.result
 
     def set_stat(self, stat_id, stat_in):
+        # The "stats" are the game values along the top bar of the app.
+        # Number of player cards, disease cubes, research stations, outbreak and infection levels.
+        
         if stat_in.isdigit():
             stat_int = int(stat_in)
         else:
@@ -199,6 +204,7 @@ if os.path.isfile("PandemicSessions.pkl"):
 else:
     sessions = []
     
+# Main menu.
 loop = True
 while loop:
     print(str(len(sessions)) + " sessions in the logs.")
@@ -215,6 +221,7 @@ while loop:
     if menu_input != "":
         menu_input = menu_input[0].lower()
     
+    # Log a game session.
     if menu_input == "l":
         session = cSession()
 
@@ -295,6 +302,8 @@ while loop:
             if not valid:
                 print("ERROR: invalid input")
 
+                
+    # Statistculate: generate statistics from the logged games.
     elif menu_input == "s":
         for num_players in [3,4]:
             role_str = "{:>" + str(max( [len(role) for role in role_list] )) + "}"
@@ -304,6 +313,7 @@ while loop:
                   + "{:>8s}".format("CARDS") + "{:>9s}".format("CUBES") + "{:>8s}".format("O/B") + "{:>6s}".format("ERAD") )
             print("-"*80)
             
+            # Distribute the data to the individual roles present in each session.
             p_vec = [0]*len(role_list)
             w_vec = [0]*len(role_list)
             pc_vec = [0]*len(role_list)
@@ -322,6 +332,7 @@ while loop:
                         ob_vec[role_i] += session.get_outbreaks()
                         er_vec[role_i] += (session.get_cubes_blue()==24) + (session.get_cubes_yellow()==24) + (session.get_cubes_black()==24) + (session.get_cubes_red()==24)
 
+            # Calculate averages and sort the roles by winning percentage.            
             pc_vec = [float(pc_vec[i])/float(max(1,p_vec[i])) for i in range(len(role_list))]
             ct_vec = [float(ct_vec[i])/float(max(1,p_vec[i])) for i in range(len(role_list))]
             ob_vec = [float(ob_vec[i])/float(max(1,p_vec[i])) for i in range(len(role_list))]
@@ -339,6 +350,7 @@ while loop:
                   + "{:8.2f}".format(sum(pc_vec)/7.) + "{:9.2f}".format(sum(ct_vec)/7.) + "{:8.2f}".format(sum(ob_vec)/7.) + "{:6d}".format(sum(er_vec)/4) )
             print
 
+        # Sort data by winnning games and losing games.
         pc, cb,cy,ck,cr,ct, rs,ob,il = [[],[]], [[],[]],[[],[]],[[],[]],[[],[]],[[],[]], [[],[]],[[],[]],[[],[]]
         for session in sessions:
             if session.get_result() == "w":
@@ -425,6 +437,8 @@ while loop:
         x.window.state("zoomed")
         plt.show()
 
+        
+    # Rank the possible 4-player teams.
     elif menu_input == "4":
         quad_list = []
         for i1 in range(7):
@@ -458,6 +472,7 @@ while loop:
         print(str(sum(quad_count)) + " in total.")
             
 
+    # Rank the best partnerships.
     elif menu_input == "p":
         p_matrix = [[0 for i in range(len(role_list))] for j in range(len(role_list))]
         w_matrix = [[0 for i in range(len(role_list))] for j in range(len(role_list))]
@@ -530,6 +545,7 @@ while loop:
             print(role_len.format("/".join(row[0:2])) + "{:6d}".format(row[2]) + "{:6d}".format(row[3]) + "{:9.2f}".format(row[4]))
 
                 
+    # Write sessions to screen.
     elif menu_input == "w":
         print_input = raw_input("Input a comma-separated list of the sessions you wish to print, or leave blank to print all. ")
         if print_input == "":
@@ -545,6 +561,8 @@ while loop:
             else:
                 print("ERROR: session #" + str(session_num) + " is not on record.")
 
+                
+    # Clear specific sessions.
     elif menu_input == "c":
         print_input = raw_input("Input a comma-separated list of the sessions you wish to clear, or leave blank to clear all. ")
         if print_input == "":
@@ -560,7 +578,10 @@ while loop:
             else:
                 print("ERROR: session #" + str(session_num) + " is not on record.")
 
+                
+    # Quit.
     elif menu_input == "q" or menu_input == "":
         loop = False
 
+        
     print
